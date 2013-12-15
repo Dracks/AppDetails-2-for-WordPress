@@ -1,5 +1,6 @@
 <?php
 	require_once("../config.php");
+	require_once('../constants.php');
 
 	if($AD_DEBUG_MODE) {
 		ini_set('display_errors', 1);
@@ -15,7 +16,7 @@
 		}
 	}	
 
-	function getInfoBox($id) {
+	function getInfoBox($id, $store) {
 
 		//$plugin_path = plugins_url("", __FILE__);
 		// S'ha d'acabar de fer això
@@ -24,11 +25,11 @@
 		$app_info = array();
 
 		// Windows Phone
-		if(strpos($id, "/") != false) {
+		if($store==WSTORE) {
 			$app_info = getWindowsPhoneAppInfo($id);
 		}
 		// Apple AppStore:
-		else if(is_numeric($id)) {
+		else if($store==ITUNES) {
 			$json = getAppleAppInfo($id);
 
 			if($json->resultCount == 0)
@@ -43,7 +44,7 @@
 				$app_info["company"] = $json->artistName;
 				$app_info["company_url"] = $json->sellerUrl;
 				$app_info["store_url"] = $json->trackViewUrl;
-				$app_info["summary"] = substr($json->description, 0, 500) . "… " . "<a href='" . $app_info["store_url"] . "' target='_blank'>" . $AD_READ_MORE_TEXT . "</a>";
+				$app_info["summary"] = substr($json->description, 0, 500) . "… " . "<a href='" . $app_info["store_url"] . "' target='_blank'>" . AD_READ_MORE_TEXT . "</a>";
 				$app_info["icon"] = $json->artworkUrl512;
 				$app_info["price"] = $json->price;
 				$app_info["formatted_price"] = $json->formattedPrice;
@@ -62,7 +63,7 @@
 				$border_radius = "-webkit-border-radius: 20px; -moz-border-radius: 20px; border-radius: 20px;";
 			}
 		}
-		else // Google Play
+		else if ($store==GPLAY) // Google Play
 		{
 			$json = getGooglePlayAppInfo($id);
 
@@ -78,7 +79,7 @@
 				$app_info["company"] = $json->developer;
 				$app_info["company_url"] = $json->developer_url;
 				$app_info["store_url"] = $json->market_url;
-				$app_info["description"] = substr($json->description, 0, 500) . "… " . "<a href='" . $app_info["store_url"] . "' target='_blank'>" .$AD_READ_MORE_TEXT . "</a>";
+				$app_info["description"] = substr($json->description, 0, 500) . "… " . "<a href='" . $app_info["store_url"] . "' target='_blank'>" .AD_READ_MORE_TEXT . "</a>";
 				$app_info["size"] = "<div class='app-box-key'>MIDA:</div><div class='app-box-value'>" . bytesConverter(intval($json->size)) . "</div>";
 				$app_info["formatted_price"] = $json->price;
 				$app_info["rating"] = $json->rating;
@@ -95,7 +96,7 @@
 				}
 
 				$itunes_app_class = "";
-				$powered_by = "<span class='app-box-powered-by'>" . $AD_DISCOVER_MORE_APPS . "<a href='http://playboard.me/app/$id'>Playboard</a></span>";
+				$powered_by = "<span class='app-box-powered-by'>" . AD_DISCOVER_MORE_APPS . "<a href='http://playboard.me/app/$id'>Playboard</a></span>";
 				$border_radius = "";
 			}
 		}
@@ -112,7 +113,7 @@
 	function getWindowsPhoneAppInfo($id) {
 		require_once("engine/simple_html_dom.php");
 
-		$url = "http://www.windowsphone.com/$AD_WS_COUNTRY/store/app/$id";
+		$url = 'http://www.windowsphone.com/'.AD_WS_COUNTRY.'/store/app/'.$id;
 
 		$html = file_get_html($url);
 		$info = $html->find("#main");
@@ -154,15 +155,15 @@
 	}
 
 	function getGooglePlayAppInfo($bundleId) {
-		$url = "http://42matters.com/api/1/apps/lookup.json?p=" . $bundleId . "&access_token=" . $AD_APPAWARE_CLIENT_TOKEN;		
+		$url = "http://42matters.com/api/1/apps/lookup.json?p=" . $bundleId . "&access_token=" . AD_APPAWARE_CLIENT_TOKEN;
 		return json_decode(file_get_contents($url));
 	}
 
 	function getAppleAppInfo($id) {
-		$url = "https://itunes.apple.com/lookup?id=" . $id . "&country=" . $AD_COUNTRY;
+		$url = 'https://itunes.apple.com/lookup?id=' . $id . '&country=' . AD_COUNTRY;
 		return json_decode(file_get_contents($url));
 	}
 
 	header('Content-Type: application/json');
-	echo getInfoBox($_GET["app"]);
+	echo getInfoBox($_GET['app'], $_GET['store']);
 ?>

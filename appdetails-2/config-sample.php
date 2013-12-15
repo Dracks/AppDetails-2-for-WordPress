@@ -3,20 +3,26 @@
 // Get acces to AppAware API at: http://dev.appaware.com/
 
 // Set the AppAware Clien Token (e.g.: b6as0c52be82t149651fhfhba5g6d2695f8a1228)
-$AD_APPAWARE_CLIENT_TOKEN = "*********************";
+define('AD_APPAWARE_CLIENT_TOKEN', "*********************");
 
 // "Read more" text:
-$AD_READ_MORE_TEXT = "Read more &raquo;";
+define('AD_READ_MORE_TEXT', "Read more &raquo;");
 
 // "Discover more apps at AppAware" (obligatory, read ToS of AppAware):
-$AD_DISCOVER_MORE_APPS = "Discover more apps at ";
+define('AD_DISCOVER_MORE_APPS', "Discover more apps at ");
 
 // AppStore Country:
-$AD_COUNTRY = "ES";
+define('AD_COUNTRY', "ES");
 
 // Windows Store Country:
-$AD_WS_COUNTRY = "en-US";
+define('AD_WS_COUNTRY', "en-US");
 
 // Debug Mode:
-$AD_DEBUG_MODE = False;
+define("AD_DEBUG_MODE", False);
+
+// Define template
+define("AD_TEMPLATE", "template.html");
+
+// Define style
+define("AD_CSS_STYLE", "style.css");
 ?>

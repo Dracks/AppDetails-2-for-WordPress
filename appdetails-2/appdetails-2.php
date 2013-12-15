@@ -12,31 +12,69 @@
 	//ini_set('display_errors', 1);
 	//error_reporting(E_ALL);
 
+	require_once('constants.php');
+	require_once('config.php');
+
 	function AP_custom_head() {
-		echo '<link rel="stylesheet" type="text/css" href="' . plugins_url("", __FILE__) . '/template/style.css">';
+		echo '<link rel="stylesheet" type="text/css" href="' . plugins_url("", __FILE__) . '/template/'.AD_CSS_STYLE.'">';
 	}
 	add_action("wp_head", "AP_custom_head");
+
+	function AP_getContent($data, $template){
+		$contents=file_get_contents($template);
+		foreach ($data as $k=>$v){
+			$contents=str_ireplace('{{'.$k.'}}', $v, $contents);
+		}
+		return $contents;
+	}
+
+	function parseData($data){
+		$cache=Array();
+		preg_match_all("/(.*)=(.*);/mU", $data, $cache);
+		//print_r($ret)
+		$ret=Array();
+		foreach ($cache[1] as $k=>$vKey){
+			$ret[strtolower($vKey)]=trim($cache[2][$k]);
+		}
+		return $ret;
+	}
 
 	function AP_the_reescriptor($text) {
 		$plugins_url = plugins_url("", __FILE__);
 		$pattern = "/\[app\](.*?)\[\/app\]/s";
 		preg_match_all($pattern, $text, $id);
 
+		//print_r($id);
+
 		$len = count($id) - 1;
 		$i = 0;
 		if($len >= 0) {
+
 			$template_translation = addslashes(str_replace("\n", "", file_get_contents($plugins_url . "/template/translation.json")));
-			$urls = "[";
-			foreach ($id[$len] as $key => $value) {
+			$urls_list = Array();
+			foreach ($id[$len] as $value) {
+				//var_dump($value);
 				if($value !== null || $value !== "") {
-					$urls .= '"' . $plugins_url . '/engine/get-json.php?app=' . $value . '",';
-					$app_box = str_replace("{{i}}", $i, file_get_contents($plugins_url . "/template/template-loading.html"));
+					//$data=json_decode(str_replace("“","\"",$value));
+					$data=parseData($value);
+					//print_r($data);
+					$data['store']=strtoupper($data['store']);
+					$app_box='';
+					//print_r($data);
+					//print_r(array(GPLAY,ITUNES, WSTORE));
+					if (in_array($data['store'], array(GPLAY,ITUNES, WSTORE))){
+						$urls_list []= $plugins_url . '/engine/get-json.php?app=' . $data['id'] . '&store='.$data['store'];
+						$app_box = str_replace("{{i}}", $i, file_get_contents($plugins_url . "/template/template-loading.html"));
+						$i++;
+					} else {
+						$app_box=AP_getContent($data, $plugins_url.'/template/'.AD_TEMPLATE);
+					}
 					$text = preg_replace($pattern, $app_box, $text, 1);
-					$i++;
 				}
 			}
-			$urls = substr($urls, 0, strlen($urls) - 1) . "]";
-			$template = str_replace("\n", "", file_get_contents($plugins_url . "/template/template.html"));
+			//print_r($urls_list);
+			$urls = '[ "'. implode('","', $urls_list) . '" ]';
+			$template = str_replace("\n", "", file_get_contents($plugins_url . "/template/".AD_TEMPLATE));
 
 $text .= <<<END
 <script type="text/javascript">
@@ -52,7 +90,8 @@ window.AD_showAppInfo = function() {
 		$.getJSON(urls[i], function(data) {
 			var app_info = window.app_info, new_template = template, k = 0;
 			for(key in data) {
-				new_template = new_template.replace("{{" + key + "}}", data[key]);
+				var re=RegExp("{{"+key+"}}","gi")
+				new_template = new_template.replace(re, data[key]);
 			}
 			app_info[window.app_info_count].innerHTML = new_template;
 			window.app_info_count += 1;

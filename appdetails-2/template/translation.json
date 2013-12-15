@@ -1,8 +1,8 @@
 {
 	"%%install%%": "install",
-	"%%price%%": "PRICE",
+	"%%price%%": "Price",
 	"%%rating%%": "RATING",
 	"%%version%%": "VERSION",
 	"%%size%%": "SIZE",
-	"%%developer%%": "DEV"
+	"%%developer%%": "Developer"
 }
